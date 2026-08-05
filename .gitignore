@@ -1,0 +1,31 @@
+# dependencies
+node_modules
+
+# turbo
+.turbo
+
+# next
+.next
+
+# build
+dist
+build
+
+# logs
+*.log
+
+# env
+.env
+.env.local
+.env.*.local
+
+# coverage
+coverage
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea
