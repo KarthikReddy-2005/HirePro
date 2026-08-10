@@ -5,7 +5,7 @@ import compression from "compression";
 import pinoHttp from "pino-http";
 
 import { logger } from "./config/logger";
-import router from "./routes";
+import { health } from "./modules/system/system.controller";
 
 const app = express();
 
@@ -19,6 +19,6 @@ app.use(compression());
 
 app.use(express.json());
 
-app.use("/api/v1", router);
+app.use("/api/v1", health);
 
 export default app;

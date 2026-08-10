@@ -1,14 +1,10 @@
-import express from "express";
+import { Request, Response } from "express";
 
-const router = express.Router();
-
-router.get("/health", (_, res) => {
+export const health = async (req: Request, res: Response): Promise<void> => {
   res.json({
     status: "ok",
     service: "HirePro API",
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
   });
-});
-
-export default router;
+};
