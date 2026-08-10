@@ -1,6 +1,12 @@
 import ApiError from "../../utils/ApiError";
 import bcrypt from "bcrypt";
-import { createUser, findUserByEmail, findUserByUsername } from "./auth.repository";
+import {
+  createUser,
+  findPasswordByEmail,
+  findUserByEmail,
+  findUserById,
+  findUserByUsername,
+} from "./auth.repository";
 
 export const registerService = async (data: {
   username: string;
@@ -20,4 +26,19 @@ export const registerService = async (data: {
   const saltRounds = 12;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
   return await createUser({ username, displayName, email, hashedPassword });
+};
+
+export const loginService = async (data: { email: string; password: string }) => {
+  const { email, password } = data;
+  const userData = await findPasswordByEmail(email);
+  if (!userData) {
+    throw new ApiError(400, "Invalid credentials");
+  }
+  const checkPassword = await bcrypt.compare(password, userData.hashedPassword);
+
+  if (!checkPassword) {
+    throw new ApiError(400, "Invalid credentials");
+  }
+
+  return await findUserById(userData.id);
 };

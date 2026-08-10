@@ -34,3 +34,33 @@ export const createUser = async (data: {
     },
   });
 };
+
+export const findPasswordByEmail = async (email: string) => {
+  return await prisma.user.findUnique({
+    where: {
+      email,
+    },
+    select: {
+      id: true,
+      hashedPassword: true,
+    },
+  });
+};
+
+export const findUserById = async (id: string) => {
+  return await prisma.user.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      id: true,
+      username: true,
+      displayName: true,
+      email: true,
+      avatarUrl: true,
+      isEmailVerified: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+};
