@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
 import pinoHttp from "pino-http";
+import cookieParser from "cookie-parser";
 
 import { logger } from "./config/logger";
 import errorMiddleware from "./middlewares/error.middleware";
@@ -27,6 +28,8 @@ app.use(
 app.use(compression());
 
 app.use(express.json());
+
+app.use(cookieParser());
 
 app.use("/api/v1", systemRouter);
 app.use("/api/v1/auth", authRouter);

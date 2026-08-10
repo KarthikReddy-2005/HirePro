@@ -2,7 +2,7 @@ import { Response } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "../config/env";
 
-const generateToken = (userId: string, res: Response) => {
+export const generateToken = (userId: string, res: Response) => {
   const token = jwt.sign({ userId }, env.JWT_SECRET, { expiresIn: "1d" });
 
   res.cookie("token", token, {
@@ -13,4 +13,10 @@ const generateToken = (userId: string, res: Response) => {
   });
 };
 
-export default generateToken;
+export const clearToken = (res: Response) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+};
