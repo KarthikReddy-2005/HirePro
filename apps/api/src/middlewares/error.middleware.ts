@@ -14,7 +14,7 @@ const errorMiddleware = (err: unknown, req: Request, res: Response, _next: NextF
       success: false,
       statusCode: err.statusCode,
       message: err.message,
-      data: null,
+      data: err.data,
     });
 
     return;
