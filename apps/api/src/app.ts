@@ -9,6 +9,7 @@ import errorMiddleware from "./middlewares/error.middleware";
 import ApiError from "./utils/ApiError";
 import { env } from "./config/env";
 import systemRouter from "./modules/system/system.routes";
+import authRouter from "./modules/auth/auth.routes";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use(compression());
 app.use(express.json());
 
 app.use("/api/v1", systemRouter);
+app.use("/api/v1/auth", authRouter);
 
 app.use((req, res, next) => {
   next(new ApiError(404, "Route not found"));
