@@ -8,7 +8,9 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(5000),
   FRONTEND_URL: z.url().default("http://localhost:3000"),
   DATABASE_URL: z.url(),
-  JWT_SECRET: z.string(),
+  JWT_SECRET: z.string().min(32),
+  BREVO_API_KEY: z.string(),
+  EMAIL_FROM: z.email(),
 });
 
 const result = envSchema.safeParse(process.env);
