@@ -1,7 +1,7 @@
 import { sendEmail } from "../../services/email.service";
 
 export const sendVerificationEmail = async (email: string, token: string) => {
-  const verificationUrl = `http://localhost:3000/verify-email?token=${token}`;
+  const verificationUrl = `http://localhost:5000/api/v1/auth/verify-email?token=${token}`;
 
   return sendEmail({
     to: email,
@@ -19,7 +19,29 @@ export const sendVerificationEmail = async (email: string, token: string) => {
         Verify Email
       </a>
 
-      <p>This link will expire soon.</p>
+      <p>This link expires in 15 minutes.</p>
+    `,
+  });
+};
+
+export const sendResetPasswordEmail = async (email: string, token: string) => {
+  const verificationUrl = `http://localhost:5000/api/v1/auth/reset-password?token=${token}`;
+
+  return sendEmail({
+    to: email,
+    subject: "Reset your password",
+    html: `
+      <h1>Reset your password</h1>
+
+      <p>
+        Click the link below to Reset your password:
+      </p>
+
+      <a href="${verificationUrl}">
+        Reset password
+      </a>
+
+      <p>This link expires in 15 minutes.</p>
     `,
   });
 };

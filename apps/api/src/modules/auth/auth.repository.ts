@@ -12,6 +12,9 @@ export const findUserByEmail = async (email: string) => {
     where: {
       email,
     },
+    select: {
+      id: true,
+    },
   });
 };
 export const createUser = async (data: {
@@ -90,3 +93,27 @@ export const updateEmailVerification = async (userId: string, id: string) => {
   ]);
 };
 
+export const createPasswordReset = async (data: {
+  userId: string;
+  tokenHash: string;
+  expiresAt: Date;
+}) => {
+  return await prisma.passwordReset.create({ data });
+};
+
+export const findPasswordResetByToken = async (tokenHash: string) => {
+  return await prisma.passwordReset.findUnique({ where: { tokenHash } });
+};
+
+export const updatePasswordReset = async (userId: string, id: string, hashedPassword: string) => {
+  return await prisma.$transaction([
+    prisma.user.update({
+      where: { id: userId },
+      data: { hashedPassword },
+    }),
+    prisma.passwordReset.update({
+      where: { id },
+      data: { usedAt: new Date() },
+    }),
+  ]);
+};

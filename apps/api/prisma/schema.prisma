@@ -16,6 +16,7 @@ model User {
   avatarUrl       String?
   isEmailVerified Boolean  @default(false)
   emailVerifications EmailVerification[]
+  passwordResets     PasswordReset[]
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -33,4 +34,18 @@ model EmailVerification {
   createdAt       DateTime @default(now())
 
   @@index([userId])
+}
+
+model PasswordReset {
+  id              String   @id @default(cuid())
+  userId          String
+  tokenHash       String   @unique
+  expiresAt       DateTime
+  usedAt          DateTime?
+
+  user User @relation(fields:[userId],references: [id],onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+
+  @@index([userId])              
 }

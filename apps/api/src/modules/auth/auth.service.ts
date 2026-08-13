@@ -1,19 +1,20 @@
 import ApiError from "../../utils/ApiError";
 import bcrypt from "bcrypt";
-import crypto from "crypto";
 import {
   createEmailVerification,
+  createPasswordReset,
   createUser,
   findEmailVerificationByToken,
   findPasswordByEmail,
+  findPasswordResetByToken,
   findUserByEmail,
   findUserById,
   findUserByUsername,
   updateEmailVerification,
+  updatePasswordReset,
 } from "./auth.repository";
 import { generateRandomToken, hashToken } from "../../utils/crypto";
-import { env } from "../../config/env";
-import { sendEmail } from "../../services/email.service";
+import { sendResetPasswordEmail, sendVerificationEmail } from "./auth.email";
 
 export const registerService = async (data: {
   username: string;
@@ -24,11 +25,11 @@ export const registerService = async (data: {
   const { username, displayName, email, password } = data;
   const usernameExists = await findUserByUsername(username);
   if (usernameExists) {
-    throw new ApiError(409, "Username is not available");
+    throw new ApiError(409, "Username already exist");
   }
   const emailExists = await findUserByEmail(email);
   if (emailExists) {
-    throw new ApiError(409, "User with this email already exist");
+    throw new ApiError(409, "Email already exist");
   }
   const saltRounds = 12;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -43,22 +44,8 @@ export const registerService = async (data: {
 
   await createEmailVerification({ userId, tokenHash, expiresAt });
 
-  const verificationUrl = `http://localhost:5000/api/v1/auth/verify-email?token=${rawToken}`;
+  await sendVerificationEmail(newUser.email, rawToken);
 
-  await sendEmail({
-    to: newUser.email,
-    subject: "Verify your HirePro email",
-    html: `
-    <h2>Welcome to HirePro</h2>
-      <p>Please verify your email address.</p>
-
-      <a href="${verificationUrl}">
-        Verify Email
-      </a>
-
-      <p>This link expires in 15 minutes.</p>
-    `,
-  });
   return newUser;
 };
 
@@ -82,17 +69,41 @@ export const verifyEmailService = async (token: string) => {
 
   const verification = await findEmailVerificationByToken(newHashToken);
 
-  if (!verification) {
+  if (!verification || verification.usedAt || verification.expiresAt < new Date()) {
     throw new ApiError(400, "Invalid or expired verification token");
   }
 
-  if (verification.usedAt) {
-    throw new ApiError(400, "Verification token has already been used");
-  }
-
-  if (verification.expiresAt < new Date()) {
-    throw new ApiError(400, "Verification token has been expired");
-  }
-
   await updateEmailVerification(verification.userId, verification.id);
+};
+
+export const forgotPasswordService = async (email: string) => {
+  const userWithEmailExists = await findUserByEmail(email);
+  if (!userWithEmailExists) {
+    throw new ApiError(400, "If an account exists with this email, a reset link has been sent.");
+  }
+
+  const rawToken = generateRandomToken();
+
+  const tokenHash = hashToken(rawToken);
+  const userId = userWithEmailExists.id;
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+  await createPasswordReset({ tokenHash, userId, expiresAt });
+
+  await sendResetPasswordEmail(email, rawToken);
+};
+
+export const PasswordResetService = async (token: string, password: string) => {
+  const newHashToken = hashToken(token);
+
+  const passwordReset = await findPasswordResetByToken(newHashToken);
+
+  if (!passwordReset || passwordReset.usedAt || passwordReset.expiresAt < new Date()) {
+    throw new ApiError(400, "Invalid or expired reset password token");
+  }
+
+  const saltRounds = 12;
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+  await updatePasswordReset(passwordReset.userId, passwordReset.id, hashedPassword);
 };
