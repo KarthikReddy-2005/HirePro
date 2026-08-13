@@ -14,7 +14,25 @@ import authRouter from "./modules/auth/auth.routes";
 
 const app = express();
 
-app.use(pinoHttp({ logger }));
+app.use(
+  pinoHttp({
+    logger,
+
+    customLogLevel: (_req, res, err) => {
+      if (err || res.statusCode >= 500) return "error";
+      if (res.statusCode >= 400) return "warn";
+      return "info";
+    },
+
+    customSuccessMessage: (req, res) => {
+      return `${req.method} ${req.originalUrl} - ${res.statusCode}`;
+    },
+
+    customErrorMessage: (req, res, err) => {
+      return `${req.method} ${req.originalUrl} - ${res.statusCode} - ${err.message}`;
+    },
+  }),
+);
 
 app.use(helmet());
 
