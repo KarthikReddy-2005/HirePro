@@ -10,7 +10,7 @@ interface JwtPayload {
 }
 
 const protectedRoute = asyncHandler(async (req: Request, res, next) => {
-  const token = req.cookies.token;
+  const token = req.cookies.accessToken;
   if (!token) {
     throw new ApiError(401, "Unauthorized! Access denied");
   }
@@ -22,7 +22,7 @@ const protectedRoute = asyncHandler(async (req: Request, res, next) => {
   }
   const { userId } = decoded;
   const existingUser = await findUserById(userId);
-  if (!existingUser) {
+  if (!existingUser || !existingUser.isEmailVerified) {
     throw new ApiError(401, "Unauthorized! Access denied");
   }
   req.user = existingUser;

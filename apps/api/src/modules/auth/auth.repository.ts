@@ -117,3 +117,33 @@ export const updatePasswordReset = async (userId: string, id: string, hashedPass
     }),
   ]);
 };
+
+export const createRefreshToken = async (data: {
+  userId: string;
+  tokenHash: string;
+  expiresAt: Date;
+}) => {
+  return prisma.refreshToken.create({
+    data,
+  });
+};
+
+export const findRefreshTokenByHash = async (tokenHash: string) => {
+  return prisma.refreshToken.findUnique({
+    where: {
+      tokenHash,
+    },
+  });
+};
+
+export const revokeRefreshToken = async (id: string) => {
+  return prisma.refreshToken.update({
+    where: {
+      id,
+    },
+    data: {
+      revokedAt: new Date(),
+    },
+  });
+};
+

@@ -11,6 +11,7 @@ import {
   getMe,
   loginUser,
   logoutUser,
+  refreshToken,
   registerUser,
   resetPassword,
   verifyEmail,
@@ -26,5 +27,6 @@ authRouter.post("/logout", logoutUser);
 authRouter.get("/verify-email", verifyEmail);
 authRouter.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
 authRouter.post("/reset-password", validate(resetPasswordSchema), resetPassword);
+authRouter.post("/refresh", refreshToken);
 
 export default authRouter;

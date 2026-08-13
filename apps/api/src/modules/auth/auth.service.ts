@@ -7,9 +7,11 @@ import {
   findEmailVerificationByToken,
   findPasswordByEmail,
   findPasswordResetByToken,
+  findRefreshTokenByHash,
   findUserByEmail,
   findUserById,
   findUserByUsername,
+  revokeRefreshToken,
   updateEmailVerification,
   updatePasswordReset,
 } from "./auth.repository";
@@ -106,4 +108,40 @@ export const PasswordResetService = async (token: string, password: string) => {
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
   await updatePasswordReset(passwordReset.userId, passwordReset.id, hashedPassword);
+};
+
+export const refreshTokenService = async (refreshToken: string) => {
+  const tokenHash = hashToken(refreshToken);
+
+  const storedToken = await findRefreshTokenByHash(tokenHash);
+
+  if (!storedToken) {
+    throw new ApiError(401, "Invalid refresh token");
+  }
+
+  if (storedToken.revokedAt) {
+    throw new ApiError(401, "Refresh token has been revoked");
+  }
+
+  if (storedToken.expiresAt < new Date()) {
+    throw new ApiError(401, "Refresh token has expired");
+  }
+
+  const user = await findUserById(storedToken.userId);
+
+  if (!user || !user.isEmailVerified) {
+    throw new ApiError(401, "Unauthorized");
+  }
+
+  return user;
+};
+
+export const logoutService = async (refreshToken: string) => {
+  const tokenHash = hashToken(refreshToken);
+
+  const storedToken = await findRefreshTokenByHash(tokenHash);
+
+  if (storedToken) {
+    await revokeRefreshToken(storedToken.id);
+  }
 };
