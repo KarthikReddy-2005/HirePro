@@ -64,3 +64,29 @@ export const findUserById = async (id: string) => {
     },
   });
 };
+
+export const createEmailVerification = async (data: {
+  userId: string;
+  tokenHash: string;
+  expiresAt: Date;
+}) => {
+  return await prisma.emailVerification.create({ data });
+};
+
+export const findEmailVerificationByToken = async (tokenHash: string) => {
+  return await prisma.emailVerification.findUnique({ where: { tokenHash } });
+};
+
+export const updateEmailVerification = async (userId: string, id: string) => {
+  return await prisma.$transaction([
+    prisma.user.update({
+      where: { id: userId },
+      data: { isEmailVerified: true },
+    }),
+    prisma.emailVerification.update({
+      where: { id },
+      data: { usedAt: new Date() },
+    }),
+  ]);
+};
+
