@@ -23,6 +23,7 @@ export const generateAuthTokens = async (userId: string, res: Response) => {
     secure: env.NODE_ENV === "production",
     sameSite: "strict",
     maxAge: 15 * 60 * 1000,
+    path: "/api/v1",
   });
 
   res.cookie("refreshToken", refreshToken, {
@@ -30,6 +31,7 @@ export const generateAuthTokens = async (userId: string, res: Response) => {
     secure: env.NODE_ENV === "production",
     sameSite: "strict",
     maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: "/api/v1",
   });
 };
 
@@ -38,10 +40,12 @@ export const clearAuthCookies = (res: Response) => {
     httpOnly: true,
     secure: env.NODE_ENV === "production",
     sameSite: "strict",
+    path: "/api/v1",
   });
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: env.NODE_ENV === "production",
     sameSite: "strict",
+    path: "/api/v1",
   });
 };

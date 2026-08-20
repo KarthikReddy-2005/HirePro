@@ -24,6 +24,7 @@ import {
   loginRateLimiter,
   registerRateLimiter,
   resendVerificationRateLimiter,
+  resetPasswordRateLimiter,
 } from "../../middlewares/rateLimit.middleware";
 
 const authRouter = express.Router();
@@ -46,7 +47,7 @@ authRouter.post(
 );
 authRouter.post(
   "/reset-password",
-  resendVerificationRateLimiter,
+  resetPasswordRateLimiter,
   validate(resetPasswordSchema),
   resetPassword,
 );

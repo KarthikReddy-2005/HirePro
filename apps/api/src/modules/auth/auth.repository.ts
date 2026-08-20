@@ -97,34 +97,62 @@ export const findPasswordResetByToken = async (tokenHash: string) => {
   return await prisma.passwordReset.findUnique({ where: { tokenHash } });
 };
 
-export const resetUserPassword = async (userId: string, hashedPassword: string) => {
+export const consumePasswordResetAndUpdatePassword = async (
+  tokenHash: string,
+  hashedPassword: string,
+) => {
   return prisma.$transaction(async (tx) => {
+    const now = new Date();
+
+    const passwordReset = await tx.passwordReset.findUnique({
+      where: {
+        tokenHash,
+      },
+      select: {
+        id: true,
+        userId: true,
+        usedAt: true,
+        expiresAt: true,
+      },
+    });
+
+    if (!passwordReset || passwordReset.usedAt !== null || passwordReset.expiresAt <= now) {
+      throw new ApiError(400, "Invalid or expired reset token");
+    }
+
+    const consumedToken = await tx.passwordReset.updateMany({
+      where: {
+        id: passwordReset.id,
+        usedAt: null,
+        expiresAt: {
+          gt: now,
+        },
+      },
+      data: {
+        usedAt: now,
+      },
+    });
+
+    if (consumedToken.count !== 1) {
+      throw new ApiError(400, "Invalid or expired reset token");
+    }
+
     await tx.user.update({
       where: {
-        id: userId,
+        id: passwordReset.userId,
       },
       data: {
         hashedPassword,
       },
     });
 
-    await tx.passwordReset.updateMany({
-      where: {
-        userId,
-        usedAt: null,
-      },
-      data: {
-        usedAt: new Date(),
-      },
-    });
-
     await tx.refreshToken.updateMany({
       where: {
-        userId,
+        userId: passwordReset.userId,
         revokedAt: null,
       },
       data: {
-        revokedAt: new Date(),
+        revokedAt: now,
       },
     });
   });

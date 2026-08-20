@@ -110,6 +110,7 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response) => 
     secure: env.NODE_ENV === "production",
     sameSite: "strict",
     maxAge: 15 * 60 * 1000,
+    path: "/api/v1",
   });
 
   res.status(200).json(new ApiResponse(200, "Access token refreshed successfully"));

@@ -1,6 +1,7 @@
 import ApiError from "../../utils/ApiError";
 import {
   consumeEmailVerification,
+  consumePasswordResetAndUpdatePassword,
   createEmailVerification,
   createPasswordReset,
   createUserWithEmailVerification,
@@ -13,7 +14,6 @@ import {
   findUserByUsername,
   findUserForVerification,
   invalidateEmailVerifications,
-  resetUserPassword,
   revokeRefreshToken,
 } from "./auth.repository";
 import { generateRandomToken, hashToken } from "../../utils/crypto";
@@ -193,16 +193,9 @@ export const forgotPasswordService = async (email: string) => {
 
 export const resetPasswordService = async (token: string, password: string) => {
   const tokenHash = hashToken(token);
-
-  const passwordReset = await findPasswordResetByToken(tokenHash);
-
-  if (!passwordReset || passwordReset.usedAt || passwordReset.expiresAt <= new Date()) {
-    throw new ApiError(400, "Invalid or expired reset token");
-  }
-
   const hashedPassword = await hashPassword(password);
 
-  await resetUserPassword(passwordReset.userId, hashedPassword);
+  await consumePasswordResetAndUpdatePassword(tokenHash, hashedPassword);
 };
 
 export const refreshTokenService = async (refreshToken: string) => {
