@@ -25,3 +25,18 @@ export const loginRateLimiter = rateLimit({
     data: null,
   },
 });
+
+export const resendVerificationRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+
+  message: {
+    success: false,
+    statusCode: 429,
+    message: "Too many verification email requests. Please try again later.",
+    data: null,
+  },
+});

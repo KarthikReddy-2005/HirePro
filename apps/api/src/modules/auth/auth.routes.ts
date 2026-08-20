@@ -4,6 +4,7 @@ import {
   forgotPasswordSchema,
   loginSchema,
   registerSchema,
+  resendVerificationSchema,
   resetPasswordSchema,
 } from "./auth.validation";
 import {
@@ -13,11 +14,16 @@ import {
   logoutUser,
   refreshToken,
   registerUser,
+  resendVerification,
   resetPassword,
   verifyEmail,
 } from "./auth.controller";
 import protectedRoute from "../../middlewares/auth.middleware";
-import { loginRateLimiter, registerRateLimiter } from "../../middlewares/rateLimit.middleware";
+import {
+  loginRateLimiter,
+  registerRateLimiter,
+  resendVerificationRateLimiter,
+} from "../../middlewares/rateLimit.middleware";
 
 const authRouter = express.Router();
 
@@ -26,6 +32,12 @@ authRouter.post("/login", loginRateLimiter, validate(loginSchema), loginUser);
 authRouter.get("/me", protectedRoute, getMe);
 authRouter.post("/logout", logoutUser);
 authRouter.get("/verify-email", verifyEmail);
+authRouter.post(
+  "/resend-verification",
+  resendVerificationRateLimiter,
+  validate(resendVerificationSchema),
+  resendVerification,
+);
 authRouter.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
 authRouter.post("/reset-password", validate(resetPasswordSchema), resetPassword);
 authRouter.post("/refresh", refreshToken);

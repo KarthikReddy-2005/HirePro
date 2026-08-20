@@ -8,6 +8,7 @@ import {
   PasswordResetService,
   refreshTokenService,
   registerService,
+  resendVerificationService,
   verifyEmailService,
 } from "./auth.service";
 import { clearAuthCookies, generateAuthTokens } from "../../utils/authTokens";
@@ -55,6 +56,19 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
   await verifyEmailService(parsedToken.data);
 
   res.status(200).json(new ApiResponse(200, "Email verified successfully"));
+});
+
+export const resendVerification = asyncHandler(async (req: Request, res: Response) => {
+  await resendVerificationService(req.body.email);
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        "If the account exists and is not verified, a verification email has been sent.",
+      ),
+    );
 });
 
 export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {

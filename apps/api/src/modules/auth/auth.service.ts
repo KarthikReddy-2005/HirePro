@@ -2,6 +2,7 @@ import ApiError from "../../utils/ApiError";
 import bcrypt from "bcrypt";
 import {
   consumeEmailVerification,
+  createEmailVerification,
   createPasswordReset,
   createUserWithEmailVerification,
   findEmailVerificationByToken,
@@ -11,6 +12,8 @@ import {
   findUserByEmail,
   findUserById,
   findUserByUsername,
+  findUserForVerification,
+  invalidateEmailVerifications,
   revokeRefreshToken,
   updatePasswordReset,
 } from "./auth.repository";
@@ -119,6 +122,41 @@ export const verifyEmailService = async (token: string) => {
   await consumeEmailVerification(verification.userId, verification.id);
 };
 
+export const resendVerificationService = async (email: string) => {
+  const user = await findUserForVerification(email);
+
+  if (!user || user.isEmailVerified) {
+    return;
+  }
+
+  await invalidateEmailVerifications(user.id);
+
+  const rawToken = generateRandomToken();
+  const tokenHash = hashToken(rawToken);
+
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+  await createEmailVerification({
+    userId: user.id,
+    tokenHash,
+    expiresAt,
+  });
+
+  try {
+    await sendVerificationEmail(user.email, rawToken);
+  } catch (error) {
+    logger.error(
+      {
+        userId: user.id,
+        email: user.email,
+        error,
+      },
+      "Failed to send verification email",
+    );
+
+    throw new ApiError(500, "Unable to send verification email");
+  }
+};
 export const forgotPasswordService = async (email: string) => {
   const userWithEmailExists = await findUserByEmail(email);
   if (!userWithEmailExists) {
