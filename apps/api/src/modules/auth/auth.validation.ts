@@ -15,7 +15,7 @@ export const registerSchema = z.object({
     .min(3, "Display name must be at least 3 characters")
     .max(30, "Display name must not exceed 30 characters"),
 
-  email: z.email("Invalid email address").transform((email) => email.trim().toLowerCase()),
+  email: z.string().trim().toLowerCase().pipe(z.email("Invalid email address")),
 
   password: z
     .string()

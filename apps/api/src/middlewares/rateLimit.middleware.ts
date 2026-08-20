@@ -1,8 +1,9 @@
 import rateLimit from "express-rate-limit";
+import { env } from "../config/env";
 
 export const registerRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 5,
+  max: env.NODE_ENV === "test" ? 1000 : 5,
   standardHeaders: "draft-8",
   legacyHeaders: false,
   message: {
@@ -28,7 +29,7 @@ export const loginRateLimiter = rateLimit({
 
 export const resendVerificationRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 5,
+  max: env.NODE_ENV === "test" ? 1000 : 5,
 
   standardHeaders: "draft-8",
   legacyHeaders: false,
@@ -43,7 +44,7 @@ export const resendVerificationRateLimiter = rateLimit({
 
 export const forgotPasswordRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 5,
+  max: env.NODE_ENV === "test" ? 1000 : 5,
   standardHeaders: "draft-8",
   legacyHeaders: false,
 
@@ -57,7 +58,7 @@ export const forgotPasswordRateLimiter = rateLimit({
 
 export const resetPasswordRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 5,
+  max: env.NODE_ENV === "test" ? 1000 : 5,
   standardHeaders: "draft-8",
   legacyHeaders: false,
 

@@ -7,7 +7,6 @@ import {
   createUserWithEmailVerification,
   findEmailVerificationByToken,
   findPasswordByEmail,
-  findPasswordResetByToken,
   findRefreshTokenByHash,
   findUserByEmail,
   findUserById,

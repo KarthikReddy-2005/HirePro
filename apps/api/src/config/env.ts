@@ -1,7 +1,12 @@
 import dotenv from "dotenv";
 import { z } from "zod";
 
-dotenv.config();
+const isVitestRun = process.env.VITEST === "true";
+
+dotenv.config({
+  path: isVitestRun ? ".env.test" : ".env",
+  override: false,
+});
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
