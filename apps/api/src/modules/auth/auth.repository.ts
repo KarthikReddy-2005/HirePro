@@ -129,9 +129,10 @@ export const findRefreshTokenByHash = async (tokenHash: string) => {
 };
 
 export const revokeRefreshToken = async (id: string) => {
-  return prisma.refreshToken.update({
+  return prisma.refreshToken.updateMany({
     where: {
       id,
+      revokedAt: null,
     },
     data: {
       revokedAt: new Date(),
