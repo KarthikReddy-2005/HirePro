@@ -1,9 +1,8 @@
 import ApiError from "../../utils/ApiError";
 import bcrypt from "bcrypt";
 import {
-  createEmailVerification,
   createPasswordReset,
-  createUser,
+  createUserWithEmailVerification,
   findEmailVerificationByToken,
   findPasswordByEmail,
   findPasswordResetByToken,
@@ -17,6 +16,9 @@ import {
 } from "./auth.repository";
 import { generateRandomToken, hashToken } from "../../utils/crypto";
 import { sendResetPasswordEmail, sendVerificationEmail } from "./auth.email";
+import { isPrismaUniqueConstraintError } from "../../utils/prismaError";
+import { logger } from "../../config/logger";
+import { env } from "../../config/env";
 
 export const registerService = async (data: {
   username: string;
@@ -25,29 +27,55 @@ export const registerService = async (data: {
   password: string;
 }) => {
   const { username, displayName, email, password } = data;
-  const usernameExists = await findUserByUsername(username);
-  if (usernameExists) {
-    throw new ApiError(409, "Username already exist");
-  }
-  const emailExists = await findUserByEmail(email);
-  if (emailExists) {
-    throw new ApiError(409, "Email already exist");
-  }
-  const saltRounds = 12;
-  const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-  const newUser = await createUser({ username, displayName, email, hashedPassword });
+  const usernameExists = await findUserByUsername(username);
+
+  if (usernameExists) {
+    throw new ApiError(409, "Username already exists");
+  }
+
+  const emailExists = await findUserByEmail(email);
+
+  if (emailExists) {
+    throw new ApiError(409, "Email already exists");
+  }
+
+  const hashedPassword = await bcrypt.hash(password, env.BCRYPT_SALT_ROUNDS);
 
   const rawToken = generateRandomToken();
-
   const tokenHash = hashToken(rawToken);
-  const userId = newUser.id;
+
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-  await createEmailVerification({ userId, tokenHash, expiresAt });
+  let newUser;
 
-  await sendVerificationEmail(newUser.email, rawToken);
+  try {
+    newUser = await createUserWithEmailVerification({
+      username,
+      displayName,
+      email,
+      hashedPassword,
+      tokenHash,
+      expiresAt,
+    });
+  } catch (error) {
+    if (isPrismaUniqueConstraintError(error)) {
+      throw new ApiError(409, "Username or email already exists");
+    }
+    throw error;
+  }
 
+  try {
+    await sendVerificationEmail(email, rawToken);
+  } catch (error) {
+    logger.error(
+      {
+        error,
+        userId: newUser.id,
+      },
+      "Failed to send verification email",
+    );
+  }
   return newUser;
 };
 

@@ -4,16 +4,18 @@ export const registerSchema = z.object({
   username: z
     .string()
     .trim()
+    .toLowerCase()
     .min(3, "Username must be at least 3 characters")
-    .max(30, "Username must not exceed 30 characters"),
+    .max(30, "Username must not exceed 30 characters")
+    .regex(/^[a-z0-9_]+$/, "Username can only contain lowercase letters, numbers, and underscores"),
 
   displayName: z
     .string()
     .trim()
-    .min(3, "DisplayName must be at least 3 characters")
-    .max(30, "DisplayName must not exceed 30 characters"),
+    .min(3, "Display name must be at least 3 characters")
+    .max(30, "Display name must not exceed 30 characters"),
 
-  email: z.email("Invalid email address"),
+  email: z.email("Invalid email address").transform((email) => email.trim().toLowerCase()),
 
   password: z
     .string()

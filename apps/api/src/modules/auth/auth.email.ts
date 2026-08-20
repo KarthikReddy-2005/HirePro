@@ -1,7 +1,8 @@
 import { sendEmail } from "../../services/email.service";
+import { env } from "../../config/env";
 
 export const sendVerificationEmail = async (email: string, token: string) => {
-  const verificationUrl = `http://localhost:5000/api/v1/auth/verify-email?token=${token}`;
+  const verificationUrl = `${env.FRONTEND_URL}/verify-email?token=${encodeURIComponent(token)}`;
 
   return sendEmail({
     to: email,
@@ -12,14 +13,20 @@ export const sendVerificationEmail = async (email: string, token: string) => {
       <p>Thanks for registering with HirePro.</p>
 
       <p>
-        Click the link below to verify your email:
+        Please click the button below to verify your email.
       </p>
 
-      <a href="${verificationUrl}">
-        Verify Email
-      </a>
+      <p>
+        <a href="${verificationUrl}">
+          Verify Email
+        </a>
+      </p>
 
       <p>This link expires in 15 minutes.</p>
+
+      <p>
+        If you did not create this account, you can safely ignore this email.
+      </p>
     `,
   });
 };

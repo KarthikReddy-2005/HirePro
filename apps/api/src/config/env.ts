@@ -11,6 +11,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32),
   BREVO_API_KEY: z.string(),
   EMAIL_FROM: z.email(),
+  BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(10).max(14).default(12),
 });
 
 const result = envSchema.safeParse(process.env);

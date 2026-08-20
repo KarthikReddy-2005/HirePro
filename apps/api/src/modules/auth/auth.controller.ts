@@ -17,10 +17,9 @@ import { generateAccessToken } from "../../utils/jwt";
 
 export const registerUser = asyncHandler(async (req: Request, res: Response) => {
   const userData = await registerService(req.body);
-  if (userData) {
-    await generateAuthTokens(userData.id, res);
-    res.status(201).json(new ApiResponse(201, "User created successfully", userData));
-  }
+  res
+    .status(201)
+    .json(new ApiResponse(201, "Account created. Please verify your email.", userData));
 });
 
 export const loginUser = asyncHandler(async (req: Request, res: Response) => {

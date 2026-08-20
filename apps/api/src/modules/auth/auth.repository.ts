@@ -17,26 +17,6 @@ export const findUserByEmail = async (email: string) => {
     },
   });
 };
-export const createUser = async (data: {
-  username: string;
-  displayName: string;
-  email: string;
-  hashedPassword: string;
-}) => {
-  return await prisma.user.create({
-    data,
-    select: {
-      id: true,
-      username: true,
-      displayName: true,
-      email: true,
-      avatarUrl: true,
-      isEmailVerified: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
-};
 
 export const findPasswordByEmail = async (email: string) => {
   return await prisma.user.findUnique({
@@ -66,14 +46,6 @@ export const findUserById = async (id: string) => {
       updatedAt: true,
     },
   });
-};
-
-export const createEmailVerification = async (data: {
-  userId: string;
-  tokenHash: string;
-  expiresAt: Date;
-}) => {
-  return await prisma.emailVerification.create({ data });
 };
 
 export const findEmailVerificationByToken = async (tokenHash: string) => {
@@ -147,3 +119,42 @@ export const revokeRefreshToken = async (id: string) => {
   });
 };
 
+export const createUserWithEmailVerification = async (data: {
+  username: string;
+  displayName: string;
+  email: string;
+  hashedPassword: string;
+  tokenHash: string;
+  expiresAt: Date;
+}) => {
+  return prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({
+      data: {
+        username: data.username,
+        displayName: data.displayName,
+        email: data.email,
+        hashedPassword: data.hashedPassword,
+      },
+      select: {
+        id: true,
+        username: true,
+        displayName: true,
+        email: true,
+        avatarUrl: true,
+        isEmailVerified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    await tx.emailVerification.create({
+      data: {
+        userId: user.id,
+        tokenHash: data.tokenHash,
+        expiresAt: data.expiresAt,
+      },
+    });
+
+    return user;
+  });
+};
