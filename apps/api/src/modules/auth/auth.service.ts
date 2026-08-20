@@ -1,6 +1,7 @@
 import ApiError from "../../utils/ApiError";
 import bcrypt from "bcrypt";
 import {
+  consumeEmailVerification,
   createPasswordReset,
   createUserWithEmailVerification,
   findEmailVerificationByToken,
@@ -11,7 +12,6 @@ import {
   findUserById,
   findUserByUsername,
   revokeRefreshToken,
-  updateEmailVerification,
   updatePasswordReset,
 } from "./auth.repository";
 import { generateRandomToken, hashToken } from "../../utils/crypto";
@@ -108,15 +108,15 @@ export const loginService = async (data: { email: string; password: string }) =>
 };
 
 export const verifyEmailService = async (token: string) => {
-  const newHashToken = hashToken(token);
+  const tokenHash = hashToken(token);
 
-  const verification = await findEmailVerificationByToken(newHashToken);
+  const verification = await findEmailVerificationByToken(tokenHash);
 
-  if (!verification || verification.usedAt || verification.expiresAt < new Date()) {
+  if (!verification) {
     throw new ApiError(400, "Invalid or expired verification token");
   }
 
-  await updateEmailVerification(verification.userId, verification.id);
+  await consumeEmailVerification(verification.userId, verification.id);
 };
 
 export const forgotPasswordService = async (email: string) => {

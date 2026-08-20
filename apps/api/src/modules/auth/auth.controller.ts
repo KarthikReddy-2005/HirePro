@@ -14,6 +14,7 @@ import { clearAuthCookies, generateAuthTokens } from "../../utils/authTokens";
 import { env } from "../../config/env";
 import ApiError from "../../utils/ApiError";
 import { generateAccessToken } from "../../utils/jwt";
+import { verificationTokenSchema } from "./auth.validation";
 
 export const registerUser = asyncHandler(async (req: Request, res: Response) => {
   const userData = await registerService(req.body);
@@ -45,13 +46,13 @@ export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
-  const { token } = req.query;
+  const parsedToken = verificationTokenSchema.safeParse(req.query.token);
 
-  if (!token || Array.isArray(token) || typeof token !== "string") {
-    return res.status(400).json({ message: "Invalid token" });
+  if (!parsedToken.success) {
+    throw new ApiError(400, "Invalid verification token");
   }
 
-  await verifyEmailService(token);
+  await verifyEmailService(parsedToken.data);
 
   res.status(200).json(new ApiResponse(200, "Email verified successfully"));
 });

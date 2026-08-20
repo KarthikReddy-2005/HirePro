@@ -1,4 +1,5 @@
 import { prisma } from "../../config/prisma";
+import ApiError from "../../utils/ApiError";
 
 export const findUserByUsername = async (username: string) => {
   return await prisma.user.findUnique({
@@ -53,17 +54,35 @@ export const findEmailVerificationByToken = async (tokenHash: string) => {
   return await prisma.emailVerification.findUnique({ where: { tokenHash } });
 };
 
-export const updateEmailVerification = async (userId: string, id: string) => {
-  return await prisma.$transaction([
-    prisma.user.update({
-      where: { id: userId },
-      data: { isEmailVerified: true },
-    }),
-    prisma.emailVerification.update({
-      where: { id },
-      data: { usedAt: new Date() },
-    }),
-  ]);
+export const consumeEmailVerification = async (userId: string, verificationId: string) => {
+  return prisma.$transaction(async (tx) => {
+    const result = await tx.emailVerification.updateMany({
+      where: {
+        id: verificationId,
+        userId,
+        usedAt: null,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+      data: {
+        usedAt: new Date(),
+      },
+    });
+
+    if (result.count !== 1) {
+      throw new ApiError(400, "Invalid or expired verification token");
+    }
+
+    await tx.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        isEmailVerified: true,
+      },
+    });
+  });
 };
 
 export const createPasswordReset = async (data: {

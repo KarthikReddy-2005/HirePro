@@ -29,6 +29,10 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+export const verificationTokenSchema = z
+  .string()
+  .regex(/^[a-f0-9]{64}$/, "Invalid verification token");
+  
 export const forgotPasswordSchema = z.object({
   email: z.email("If an account exists with this email, a reset link has been sent."),
 });
