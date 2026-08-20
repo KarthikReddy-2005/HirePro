@@ -5,10 +5,10 @@ import {
   forgotPasswordService,
   loginService,
   logoutService,
-  PasswordResetService,
   refreshTokenService,
   registerService,
   resendVerificationService,
+  resetPasswordService,
   verifyEmailService,
 } from "./auth.service";
 import { clearAuthCookies, generateAuthTokens } from "../../utils/authTokens";
@@ -86,12 +86,12 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response) =>
   const { password } = req.body;
 
   if (!token || Array.isArray(token) || typeof token !== "string") {
-    throw new ApiError(401, "Token is required");
+    throw new ApiError(400, "Reset token is required");
   }
 
-  await PasswordResetService(token, password);
+  await resetPasswordService(token, password);
 
-  res.status(200).json(new ApiResponse(200, "Password reseted successfully"));
+  res.status(200).json(new ApiResponse(200, "Password reset successfully"));
 });
 
 export const refreshToken = asyncHandler(async (req: Request, res: Response) => {

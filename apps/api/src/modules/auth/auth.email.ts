@@ -32,23 +32,31 @@ export const sendVerificationEmail = async (email: string, token: string) => {
 };
 
 export const sendResetPasswordEmail = async (email: string, token: string) => {
-  const verificationUrl = `http://localhost:5000/api/v1/auth/reset-password?token=${token}`;
+  const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${encodeURIComponent(token)}`;
 
   return sendEmail({
     to: email,
-    subject: "Reset your password",
+    subject: "Reset your HirePro password",
     html: `
       <h1>Reset your password</h1>
 
       <p>
-        Click the link below to Reset your password:
+        We received a request to reset your HirePro password.
       </p>
 
-      <a href="${verificationUrl}">
-        Reset password
+      <p>
+        Click the link below to reset your password:
+      </p>
+
+      <a href="${resetUrl}">
+        Reset Password
       </a>
 
       <p>This link expires in 15 minutes.</p>
+
+      <p>
+        If you did not request this, you can safely ignore this email.
+      </p>
     `,
   });
 };

@@ -20,6 +20,7 @@ import {
 } from "./auth.controller";
 import protectedRoute from "../../middlewares/auth.middleware";
 import {
+  forgotPasswordRateLimiter,
   loginRateLimiter,
   registerRateLimiter,
   resendVerificationRateLimiter,
@@ -38,8 +39,18 @@ authRouter.post(
   validate(resendVerificationSchema),
   resendVerification,
 );
-authRouter.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
-authRouter.post("/reset-password", validate(resetPasswordSchema), resetPassword);
+authRouter.post(
+  "/forgot-password",
+  forgotPasswordRateLimiter,
+  validate(forgotPasswordSchema),
+  forgotPassword,
+);
+authRouter.post(
+  "/reset-password",
+  resendVerificationRateLimiter,
+  validate(resetPasswordSchema),
+  resetPassword,
+);
 authRouter.post("/refresh", refreshToken);
 
 export default authRouter;

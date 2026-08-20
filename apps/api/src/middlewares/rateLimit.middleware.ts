@@ -40,3 +40,31 @@ export const resendVerificationRateLimiter = rateLimit({
     data: null,
   },
 });
+
+export const forgotPasswordRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+
+  message: {
+    success: false,
+    statusCode: 429,
+    message: "Too many forgot password requests. Please try again later.",
+    data: null,
+  },
+});
+
+export const resetPasswordRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+
+  message: {
+    success: false,
+    statusCode: 429,
+    message: "Too many forgot password requests. Please try again later.",
+    data: null,
+  },
+});

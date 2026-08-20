@@ -97,17 +97,37 @@ export const findPasswordResetByToken = async (tokenHash: string) => {
   return await prisma.passwordReset.findUnique({ where: { tokenHash } });
 };
 
-export const updatePasswordReset = async (userId: string, id: string, hashedPassword: string) => {
-  return await prisma.$transaction([
-    prisma.user.update({
-      where: { id: userId },
-      data: { hashedPassword },
-    }),
-    prisma.passwordReset.update({
-      where: { id },
-      data: { usedAt: new Date() },
-    }),
-  ]);
+export const resetUserPassword = async (userId: string, hashedPassword: string) => {
+  return prisma.$transaction(async (tx) => {
+    await tx.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        hashedPassword,
+      },
+    });
+
+    await tx.passwordReset.updateMany({
+      where: {
+        userId,
+        usedAt: null,
+      },
+      data: {
+        usedAt: new Date(),
+      },
+    });
+
+    await tx.refreshToken.updateMany({
+      where: {
+        userId,
+        revokedAt: null,
+      },
+      data: {
+        revokedAt: new Date(),
+      },
+    });
+  });
 };
 
 export const createRefreshToken = async (data: {

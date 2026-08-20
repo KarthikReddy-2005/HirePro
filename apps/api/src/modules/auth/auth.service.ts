@@ -1,5 +1,4 @@
 import ApiError from "../../utils/ApiError";
-import bcrypt from "bcrypt";
 import {
   consumeEmailVerification,
   createEmailVerification,
@@ -14,14 +13,14 @@ import {
   findUserByUsername,
   findUserForVerification,
   invalidateEmailVerifications,
+  resetUserPassword,
   revokeRefreshToken,
-  updatePasswordReset,
 } from "./auth.repository";
 import { generateRandomToken, hashToken } from "../../utils/crypto";
 import { sendResetPasswordEmail, sendVerificationEmail } from "./auth.email";
 import { isPrismaUniqueConstraintError } from "../../utils/prismaError";
 import { logger } from "../../config/logger";
-import { env } from "../../config/env";
+import { comparePassword, hashPassword } from "../../utils/password";
 
 export const registerService = async (data: {
   username: string;
@@ -43,7 +42,7 @@ export const registerService = async (data: {
     throw new ApiError(409, "Email already exists");
   }
 
-  const hashedPassword = await bcrypt.hash(password, env.BCRYPT_SALT_ROUNDS);
+  const hashedPassword = await hashPassword(password);
 
   const rawToken = generateRandomToken();
   const tokenHash = hashToken(rawToken);
@@ -91,7 +90,7 @@ export const loginService = async (data: { email: string; password: string }) =>
     throw new ApiError(401, "Invalid email or password");
   }
 
-  const passwordValid = await bcrypt.compare(password, userData.hashedPassword);
+  const passwordValid = await comparePassword(password, userData.hashedPassword);
 
   if (!passwordValid) {
     throw new ApiError(401, "Invalid email or password");
@@ -157,36 +156,53 @@ export const resendVerificationService = async (email: string) => {
     throw new ApiError(500, "Unable to send verification email");
   }
 };
+
 export const forgotPasswordService = async (email: string) => {
-  const userWithEmailExists = await findUserByEmail(email);
-  if (!userWithEmailExists) {
-    throw new ApiError(400, "If an account exists with this email, a reset link has been sent.");
+  const user = await findUserByEmail(email);
+
+  if (!user) {
+    return;
   }
 
   const rawToken = generateRandomToken();
-
   const tokenHash = hashToken(rawToken);
-  const userId = userWithEmailExists.id;
+
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-  await createPasswordReset({ tokenHash, userId, expiresAt });
+  await createPasswordReset({
+    tokenHash,
+    userId: user.id,
+    expiresAt,
+  });
 
-  await sendResetPasswordEmail(email, rawToken);
+  try {
+    await sendResetPasswordEmail(email, rawToken);
+  } catch (error) {
+    logger.error(
+      {
+        userId: user.id,
+        email,
+        error,
+      },
+      "Failed to send password reset email",
+    );
+
+    throw new ApiError(500, "Unable to send password reset email");
+  }
 };
 
-export const PasswordResetService = async (token: string, password: string) => {
-  const newHashToken = hashToken(token);
+export const resetPasswordService = async (token: string, password: string) => {
+  const tokenHash = hashToken(token);
 
-  const passwordReset = await findPasswordResetByToken(newHashToken);
+  const passwordReset = await findPasswordResetByToken(tokenHash);
 
-  if (!passwordReset || passwordReset.usedAt || passwordReset.expiresAt < new Date()) {
-    throw new ApiError(400, "Invalid or expired reset password token");
+  if (!passwordReset || passwordReset.usedAt || passwordReset.expiresAt <= new Date()) {
+    throw new ApiError(400, "Invalid or expired reset token");
   }
 
-  const saltRounds = 12;
-  const hashedPassword = await bcrypt.hash(password, saltRounds);
+  const hashedPassword = await hashPassword(password);
 
-  await updatePasswordReset(passwordReset.userId, passwordReset.id, hashedPassword);
+  await resetUserPassword(passwordReset.userId, hashedPassword);
 };
 
 export const refreshTokenService = async (refreshToken: string) => {

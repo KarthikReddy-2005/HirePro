@@ -38,7 +38,7 @@ export const resendVerificationSchema = z.object({
 });
 
 export const forgotPasswordSchema = z.object({
-  email: z.email("If an account exists with this email, a reset link has been sent."),
+  email: z.email("Invalid email address").transform((email) => email.trim().toLowerCase()),
 });
 
 export const resetPasswordSchema = z.object({
