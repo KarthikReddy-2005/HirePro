@@ -30,8 +30,6 @@ const authRouter = express.Router();
 
 authRouter.post("/register", registerRateLimiter, validate(registerSchema), registerUser);
 authRouter.post("/login", loginRateLimiter, validate(loginSchema), loginUser);
-authRouter.get("/me", protectedRoute, getMe);
-authRouter.post("/logout", logoutUser);
 authRouter.get("/verify-email", verifyEmail);
 authRouter.post(
   "/resend-verification",
@@ -39,6 +37,7 @@ authRouter.post(
   validate(resendVerificationSchema),
   resendVerification,
 );
+
 authRouter.post(
   "/forgot-password",
   forgotPasswordRateLimiter,
@@ -51,6 +50,9 @@ authRouter.post(
   validate(resetPasswordSchema),
   resetPassword,
 );
+
+authRouter.get("/me", protectedRoute, getMe);
+authRouter.post("/logout", logoutUser);
 authRouter.post("/refresh", refreshToken);
 
 export default authRouter;

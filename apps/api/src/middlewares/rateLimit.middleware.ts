@@ -64,7 +64,7 @@ export const resetPasswordRateLimiter = rateLimit({
   message: {
     success: false,
     statusCode: 429,
-    message: "Too many forgot password requests. Please try again later.",
+    message: "Too many password reset requests. Please try again later.",
     data: null,
   },
 });

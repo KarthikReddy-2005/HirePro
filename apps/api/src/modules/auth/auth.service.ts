@@ -210,16 +210,8 @@ export const refreshTokenService = async (refreshToken: string) => {
 
   const storedToken = await findRefreshTokenByHash(tokenHash);
 
-  if (!storedToken) {
+  if (!storedToken || storedToken.revokedAt || storedToken.expiresAt <= new Date()) {
     throw new ApiError(401, "Invalid refresh token");
-  }
-
-  if (storedToken.revokedAt) {
-    throw new ApiError(401, "Refresh token has been revoked");
-  }
-
-  if (storedToken.expiresAt < new Date()) {
-    throw new ApiError(401, "Refresh token has expired");
   }
 
   const user = await findUserById(storedToken.userId);
