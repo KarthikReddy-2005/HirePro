@@ -26,6 +26,7 @@ export const findPasswordByEmail = async (email: string) => {
     select: {
       id: true,
       hashedPassword: true,
+      isEmailVerified: true,
     },
   });
 };

@@ -81,17 +81,30 @@ export const registerService = async (data: {
 
 export const loginService = async (data: { email: string; password: string }) => {
   const { email, password } = data;
+
   const userData = await findPasswordByEmail(email);
+
   if (!userData) {
-    throw new ApiError(400, "Invalid credentials");
-  }
-  const checkPassword = await bcrypt.compare(password, userData.hashedPassword);
-
-  if (!checkPassword) {
-    throw new ApiError(400, "Invalid credentials");
+    throw new ApiError(401, "Invalid email or password");
   }
 
-  return await findUserById(userData.id);
+  const passwordValid = await bcrypt.compare(password, userData.hashedPassword);
+
+  if (!passwordValid) {
+    throw new ApiError(401, "Invalid email or password");
+  }
+
+  if (!userData.isEmailVerified) {
+    throw new ApiError(403, "Please verify your email before logging in");
+  }
+
+  const user = await findUserById(userData.id);
+
+  if (!user) {
+    throw new ApiError(401, "Unauthorized");
+  }
+
+  return user;
 };
 
 export const verifyEmailService = async (token: string) => {

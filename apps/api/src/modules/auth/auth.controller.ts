@@ -24,10 +24,8 @@ export const registerUser = asyncHandler(async (req: Request, res: Response) => 
 
 export const loginUser = asyncHandler(async (req: Request, res: Response) => {
   const userData = await loginService(req.body);
-  if (userData) {
-    await generateAuthTokens(userData.id, res);
-    res.status(200).json(new ApiResponse(200, "User logged in successfully", userData));
-  }
+  await generateAuthTokens(userData.id, res);
+  res.status(200).json(new ApiResponse(200, "User logged in successfully", userData));
 });
 
 export const getMe = asyncHandler(async (req: Request, res: Response) => {

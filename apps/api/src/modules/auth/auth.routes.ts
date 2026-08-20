@@ -17,12 +17,12 @@ import {
   verifyEmail,
 } from "./auth.controller";
 import protectedRoute from "../../middlewares/auth.middleware";
-import { registerRateLimiter } from "../../middlewares/rateLimit.middleware";
+import { loginRateLimiter, registerRateLimiter } from "../../middlewares/rateLimit.middleware";
 
 const authRouter = express.Router();
 
 authRouter.post("/register", registerRateLimiter, validate(registerSchema), registerUser);
-authRouter.post("/login", validate(loginSchema), loginUser);
+authRouter.post("/login", loginRateLimiter, validate(loginSchema), loginUser);
 authRouter.get("/me", protectedRoute, getMe);
 authRouter.post("/logout", logoutUser);
 authRouter.get("/verify-email", verifyEmail);
