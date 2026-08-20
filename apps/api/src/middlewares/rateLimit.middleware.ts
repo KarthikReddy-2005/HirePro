@@ -16,7 +16,7 @@ export const registerRateLimiter = rateLimit({
 
 export const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 10,
+  max: env.NODE_ENV === "test" ? 1000 : 5,
   standardHeaders: "draft-8",
   legacyHeaders: false,
   message: {

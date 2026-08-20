@@ -5,6 +5,7 @@ import app from "../../../src/app";
 import { prisma } from "../../../src/config/prisma";
 
 import { sendVerificationEmail } from "../../../src/modules/auth/auth.email";
+import { cleanDatabase } from "../../setup";
 
 vi.mock("../../../src/modules/auth/auth.email", () => ({
   sendVerificationEmail: vi.fn(),
@@ -13,9 +14,9 @@ vi.mock("../../../src/modules/auth/auth.email", () => ({
 
 describe("POST /api/v1/auth/register", () => {
   beforeEach(async () => {
-    vi.clearAllMocks();
+    await cleanDatabase();
 
-    await prisma.user.deleteMany();
+    vi.clearAllMocks();
 
     vi.mocked(sendVerificationEmail).mockResolvedValue(undefined);
   });
