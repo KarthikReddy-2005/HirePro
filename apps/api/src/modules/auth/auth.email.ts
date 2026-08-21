@@ -31,10 +31,10 @@ export const sendVerificationEmail = async (email: string, token: string): Promi
   });
 };
 
-export const sendResetPasswordEmail = async (email: string, token: string) => {
+export const sendResetPasswordEmail = async (email: string, token: string): Promise<void> => {
   const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${encodeURIComponent(token)}`;
 
-  return sendEmail({
+  await sendEmail({
     to: email,
     subject: "Reset your HirePro password",
     html: `
