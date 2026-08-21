@@ -1,10 +1,10 @@
 import { sendEmail } from "../../services/email.service";
 import { env } from "../../config/env";
 
-export const sendVerificationEmail = async (email: string, token: string) => {
+export const sendVerificationEmail = async (email: string, token: string): Promise<void> => {
   const verificationUrl = `${env.FRONTEND_URL}/verify-email?token=${encodeURIComponent(token)}`;
 
-  return sendEmail({
+  await sendEmail({
     to: email,
     subject: "Verify your HirePro email",
     html: `
@@ -31,10 +31,10 @@ export const sendVerificationEmail = async (email: string, token: string) => {
   });
 };
 
-export const sendResetPasswordEmail = async (email: string, token: string) => {
+export const sendResetPasswordEmail = async (email: string, token: string): Promise<void> => {
   const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${encodeURIComponent(token)}`;
 
-  return sendEmail({
+  await sendEmail({
     to: email,
     subject: "Reset your HirePro password",
     html: `

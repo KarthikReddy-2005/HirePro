@@ -15,7 +15,7 @@ export const registerSchema = z.object({
     .min(3, "Display name must be at least 3 characters")
     .max(30, "Display name must not exceed 30 characters"),
 
-  email: z.email("Invalid email address").transform((email) => email.trim().toLowerCase()),
+  email: z.string().trim().toLowerCase().pipe(z.email("Invalid email address")),
 
   password: z
     .string()
@@ -34,11 +34,11 @@ export const verificationTokenSchema = z
   .regex(/^[a-f0-9]{64}$/, "Invalid verification token");
   
 export const resendVerificationSchema = z.object({
-  email: z.email("Invalid email address"),
+  email: z.string().trim().toLowerCase().pipe(z.email("Invalid email address")),
 });
 
 export const forgotPasswordSchema = z.object({
-  email: z.email("Invalid email address").transform((email) => email.trim().toLowerCase()),
+  email: z.string().trim().toLowerCase().pipe(z.email("Invalid email address")),
 });
 
 export const resetPasswordSchema = z.object({
