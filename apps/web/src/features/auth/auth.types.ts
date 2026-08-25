@@ -1,4 +1,9 @@
-export type { LoginInput, RegisterInput } from "./auth.schemas";
+export type {
+  ForgotPasswordInput,
+  LoginInput,
+  RegisterInput,
+  ResetPasswordInput,
+} from "./auth.schemas";
 
 export interface User {
   id: string;

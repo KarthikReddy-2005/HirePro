@@ -41,6 +41,51 @@ export default function RegisterForm() {
     } catch (error: unknown) {
       if (axios.isAxiosError<ApiErrorResponse>(error)) {
         const responseData = error.response?.data;
+        const fieldErrors = responseData?.data;
+
+        if (fieldErrors) {
+          const supportedFields = ["username", "displayName", "email", "password"] as const;
+
+          let fieldErrorWasSet = false;
+
+          for (const field of supportedFields) {
+            const message = fieldErrors[field];
+
+            if (message) {
+              setError(field, {
+                type: "server",
+                message,
+              });
+
+              fieldErrorWasSet = true;
+            }
+          }
+
+          if (fieldErrorWasSet) {
+            return;
+          }
+        }
+
+        if (
+          responseData?.statusCode === 409 &&
+          responseData.message === "Username already exists"
+        ) {
+          setError("username", {
+            type: "server",
+            message: responseData.message,
+          });
+
+          return;
+        }
+
+        if (responseData?.statusCode === 409 && responseData.message === "Email already exists") {
+          setError("email", {
+            type: "server",
+            message: responseData.message,
+          });
+
+          return;
+        }
 
         setError("root.server", {
           type: "server",
@@ -55,7 +100,7 @@ export default function RegisterForm() {
         message: "An unexpected error occurred. Please try again.",
       });
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>

@@ -28,3 +28,22 @@ export async function getMe(): Promise<ApiResponse<User>> {
   const response = await apiClient.get<ApiResponse<User>>("/auth/me");
   return response.data;
 }
+
+export async function forgotPassword(email: string): Promise<ApiResponse<null>> {
+  const response = await apiClient.post<ApiResponse<null>>("/auth/forgot-password", { email });
+  return response.data;
+}
+
+export async function resetPassword(token: string, password: string): Promise<ApiResponse<null>> {
+  const response = await apiClient.post<ApiResponse<null>>(
+    "/auth/reset-password",
+    { password },
+    { params: { token } },
+  );
+  return response.data;
+}
+
+export async function logoutUser(): Promise<ApiResponse<null>> {
+  const response = await apiClient.post<ApiResponse<null>>("/auth/logout");
+  return response.data;
+}
