@@ -15,11 +15,9 @@ build
 *.log
 
 # env
-.env
-.env.test
-.env.local
-.env.*.local
-
+.env*
+!.env.example
+!.env.test
 # coverage
 coverage
 
