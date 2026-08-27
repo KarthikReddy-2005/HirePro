@@ -16,21 +16,13 @@ export const createOrganizationSchema = z
       .max(60, "Slug cannot exceed 60 characters")
       .regex(
         /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-        "Slug can contain lowercase letters, numbers, and hyphens",
+        "Slug can only contain lowercase letters, numbers, and hyphens",
       ),
 
     description: z.string().trim().max(500, "Description cannot exceed 500 characters").optional(),
 
-    website: z
-      .string()
-      .trim()
-      .pipe(z.url({ error: "Website must be a valid URL" }))
-      .optional(),
+    website: z.string().trim().url("Website must be a valid URL").optional(),
 
-    logoUrl: z
-      .string()
-      .trim()
-      .pipe(z.url({ error: "Logo URL must be a valid URL" }))
-      .optional(),
+    logoUrl: z.string().trim().url("Logo URL must be a valid URL").optional(),
   })
   .strict();

@@ -4,6 +4,7 @@ import {
   createOrganization,
   type CreateOrganizationData,
   findOrganizationBySlug,
+  findOrganizationByUserId,
   findUserInOrganization,
 } from "./org.repository";
 
@@ -21,4 +22,20 @@ export const createOrganizationService = async (data: CreateOrganizationData, us
   }
 
   return createOrganization(data, userId);
+};
+
+export const getMyOrganizationService = async (userId: string) => {
+  const membership = await findOrganizationByUserId(userId);
+
+  if (!membership) {
+    throw new ApiError(404, "User does not belong to an organization");
+  }
+
+  return {
+    ...membership.organization,
+    membership: {
+      role: membership.organizationRole,
+      joinedAt: membership.joinedAt,
+    },
+  };
 };

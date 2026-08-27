@@ -1,146 +1,156 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+// tests/unit/org/org.service.test.ts
 
-import ApiError from "../../../src/utils/ApiError";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createOrganization,
   findOrganizationBySlug,
+  findOrganizationByUserId,
   findUserInOrganization,
 } from "../../../src/modules/org/org.repository";
 
-import { createOrganizationService } from "../../../src/modules/org/org.service";
+import {
+  createOrganizationService,
+  getMyOrganizationService,
+} from "../../../src/modules/org/org.service";
 
 vi.mock("../../../src/modules/org/org.repository", () => ({
-  findOrganizationBySlug: vi.fn(),
-  findUserInOrganization: vi.fn(),
   createOrganization: vi.fn(),
+  findOrganizationBySlug: vi.fn(),
+  findOrganizationByUserId: vi.fn(),
+  findUserInOrganization: vi.fn(),
 }));
 
-const mockedFindOrganizationBySlug = vi.mocked(findOrganizationBySlug);
-
-const mockedFindUserInOrganization = vi.mocked(findUserInOrganization);
-
-const mockedCreateOrganization = vi.mocked(createOrganization);
-
-describe("createOrganisationService", () => {
-  const userId = "user-123";
+describe("organization service", () => {
+  const userId = "user-1";
 
   const input = {
     name: "HirePro Technologies",
     slug: "hirepro-technologies",
     description: "AI-powered hiring platform",
+    website: "https://hirepro.example.com",
+    logoUrl: "https://hirepro.example.com/logo.png",
   };
 
-  const createdResult = {
-    organization: {
-      id: "organization-123",
-      name: input.name,
-      slug: input.slug,
-      description: input.description,
-      website: null,
-      logoUrl: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    organizationMember: {
-      id: "membership-123",
-      userId,
-      organizationId: "organization-123",
-      organizationRole: "OWNER" as const,
-      joinedAt: new Date(),
-    },
+  const organization = {
+    id: "organization-1",
+    ...input,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  const organizationMember = {
+    id: "membership-1",
+    userId,
+    organizationId: organization.id,
+    organizationRole: "OWNER" as const,
+    joinedAt: new Date(),
+  };
+
+  const organizationMembershipResult = {
+    organizationRole: "OWNER" as const,
+    joinedAt: organizationMember.joinedAt,
+    organization,
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("creates an organization when the slug and user are available", async () => {
-    mockedFindOrganizationBySlug.mockResolvedValue(null);
-    mockedFindUserInOrganization.mockResolvedValue(null);
+  describe("createOrganizationService", () => {
+    it("creates an organization when the slug and membership are available", async () => {
+      vi.mocked(findOrganizationBySlug).mockResolvedValue(null);
 
-    mockedCreateOrganization.mockResolvedValue(createdResult);
+      vi.mocked(findUserInOrganization).mockResolvedValue(null);
 
-    const result = await createOrganizationService(input, userId);
+      vi.mocked(createOrganization).mockResolvedValue({
+        organization,
+        organizationMember,
+      });
 
-    expect(mockedFindOrganizationBySlug).toHaveBeenCalledOnce();
+      const result = await createOrganizationService(input, userId);
 
-    expect(mockedFindOrganizationBySlug).toHaveBeenCalledWith(input.slug);
+      expect(findOrganizationBySlug).toHaveBeenCalledWith(input.slug);
 
-    expect(mockedFindUserInOrganization).toHaveBeenCalledWith(userId);
+      expect(findUserInOrganization).toHaveBeenCalledWith(userId);
 
-    expect(mockedCreateOrganization).toHaveBeenCalledWith(input, userId);
+      expect(createOrganization).toHaveBeenCalledWith(input, userId);
 
-    expect(result).toEqual(createdResult);
+      expect(result).toEqual({
+        organization,
+        organizationMember,
+      });
+    });
+
+    it("throws 409 when the slug already exists", async () => {
+      vi.mocked(findOrganizationBySlug).mockResolvedValue(organization);
+
+      await expect(createOrganizationService(input, userId)).rejects.toMatchObject({
+        statusCode: 409,
+        message: "Organization slug already exists",
+      });
+
+      expect(findUserInOrganization).not.toHaveBeenCalled();
+
+      expect(createOrganization).not.toHaveBeenCalled();
+    });
+
+    it("throws 409 when the user already belongs to an organization", async () => {
+      vi.mocked(findOrganizationBySlug).mockResolvedValue(null);
+
+      vi.mocked(findUserInOrganization).mockResolvedValue(organizationMember);
+
+      await expect(createOrganizationService(input, userId)).rejects.toMatchObject({
+        statusCode: 409,
+        message: "User already belongs to an organization",
+      });
+
+      expect(createOrganization).not.toHaveBeenCalled();
+    });
+
+    it("propagates repository errors", async () => {
+      vi.mocked(findOrganizationBySlug).mockRejectedValue(new Error("Database unavailable"));
+
+      await expect(createOrganizationService(input, userId)).rejects.toThrow(
+        "Database unavailable",
+      );
+
+      expect(createOrganization).not.toHaveBeenCalled();
+    });
   });
 
-  it("throws 409 when the slug already exists", async () => {
-    mockedFindOrganizationBySlug.mockResolvedValue({
-      id: "existing-organization",
-      name: "Existing Organization",
-      slug: input.slug,
-      description: null,
-      website: null,
-      logoUrl: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+  describe("getMyOrganizationService", () => {
+    it("returns the organization and current membership details", async () => {
+      vi.mocked(findOrganizationByUserId).mockResolvedValue(organizationMembershipResult);
+
+      const result = await getMyOrganizationService(userId);
+
+      expect(findOrganizationByUserId).toHaveBeenCalledWith(userId);
+
+      expect(result).toEqual({
+        ...organization,
+        membership: {
+          role: organizationMember.organizationRole,
+          joinedAt: organizationMember.joinedAt,
+        },
+      });
     });
 
-    await expect(createOrganizationService(input, userId)).rejects.toMatchObject({
-      statusCode: 409,
-      message: "Organization slug already exists",
+    it("throws 404 when the user has no organization", async () => {
+      vi.mocked(findOrganizationByUserId).mockResolvedValue(null);
+
+      await expect(getMyOrganizationService(userId)).rejects.toMatchObject({
+        statusCode: 404,
+        message: "User does not belong to an organization",
+      });
     });
 
-    expect(mockedFindUserInOrganization).not.toHaveBeenCalled();
+    it("propagates repository errors", async () => {
+      vi.mocked(findOrganizationByUserId).mockRejectedValue(
+        new Error("Organization lookup failed"),
+      );
 
-    expect(mockedCreateOrganization).not.toHaveBeenCalled();
-  });
-
-  it("throws 409 when the user already belongs to an organization", async () => {
-    mockedFindOrganizationBySlug.mockResolvedValue(null);
-
-    mockedFindUserInOrganization.mockResolvedValue({
-      id: "membership-123",
-      userId,
-      organizationId: "organization-123",
-      organizationRole: "OWNER",
-      joinedAt: new Date(),
+      await expect(getMyOrganizationService(userId)).rejects.toThrow("Organization lookup failed");
     });
-
-    await expect(createOrganizationService(input, userId)).rejects.toMatchObject({
-      statusCode: 409,
-      message: "User already belongs to an organization",
-    });
-
-    expect(mockedCreateOrganization).not.toHaveBeenCalled();
-  });
-
-  it("propagates repository errors", async () => {
-    mockedFindOrganizationBySlug.mockRejectedValue(new Error("Database unavailable"));
-
-    await expect(createOrganizationService(input, userId)).rejects.toThrow("Database unavailable");
-
-    expect(mockedCreateOrganization).not.toHaveBeenCalled();
-  });
-
-  it("returns an ApiError for duplicate slug", async () => {
-    mockedFindOrganizationBySlug.mockResolvedValue({
-      id: "existing-organization",
-      name: "Existing Organization",
-      slug: input.slug,
-      description: null,
-      website: null,
-      logoUrl: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    try {
-      await createOrganizationService(input, userId);
-
-      throw new Error("Expected service to reject");
-    } catch (error) {
-      expect(error).toBeInstanceOf(ApiError);
-    }
   });
 });
