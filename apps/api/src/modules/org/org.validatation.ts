@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const createOrganisationSchema = z
+export const createOrganizationSchema = z
   .object({
     name: z
       .string()
@@ -21,8 +21,16 @@ export const createOrganisationSchema = z
 
     description: z.string().trim().max(500, "Description cannot exceed 500 characters").optional(),
 
-    website: z.string().trim().pipe(z.url({ error: "Website must be a valid URL" })).optional(),
+    website: z
+      .string()
+      .trim()
+      .pipe(z.url({ error: "Website must be a valid URL" }))
+      .optional(),
 
-    logoUrl: z.string().trim().pipe(z.url({ error: "Logo URL must be a valid URL" })).optional(),
+    logoUrl: z
+      .string()
+      .trim()
+      .pipe(z.url({ error: "Logo URL must be a valid URL" }))
+      .optional(),
   })
   .strict();

@@ -1,13 +1,13 @@
 import ApiError from "../../utils/ApiError";
 
 import {
-  createOrganisation,
+  createOrganization,
   type CreateOrganizationData,
   findOrganizationBySlug,
   findUserInOrganization,
 } from "./org.repository";
 
-export const createOrganisationService = async (data: CreateOrganizationData, userId: string) => {
+export const createOrganizationService = async (data: CreateOrganizationData, userId: string) => {
   const slugExists = await findOrganizationBySlug(data.slug);
 
   if (slugExists) {
@@ -20,5 +20,5 @@ export const createOrganisationService = async (data: CreateOrganizationData, us
     throw new ApiError(409, "User already belongs to an organization");
   }
 
-  return createOrganisation(data, userId);
+  return createOrganization(data, userId);
 };

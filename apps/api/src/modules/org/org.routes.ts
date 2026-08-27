@@ -1,11 +1,11 @@
 import express from "express";
 import protectedRoute from "../../middlewares/auth.middleware";
 import { validate } from "../../middlewares/validate.middleware";
-import { createOrganisation } from "./org.controller";
-import { createOrganisationSchema } from "./org.validatation";
+import { createOrganization } from "./org.controller";
+import { createOrganizationSchema } from "./org.validatation";
 
 const orgRouter = express.Router();
 
-orgRouter.post("/create", protectedRoute, validate(createOrganisationSchema), createOrganisation);
+orgRouter.post("/", protectedRoute, validate(createOrganizationSchema), createOrganization);
 
 export default orgRouter;

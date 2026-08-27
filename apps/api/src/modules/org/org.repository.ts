@@ -24,7 +24,7 @@ export const findUserInOrganization = async (userId: string) => {
   });
 };
 
-export const createOrganisation = async (data: CreateOrganizationData, userId: string) => {
+export const createOrganization = async (data: CreateOrganizationData, userId: string) => {
   return prisma.$transaction(async (tx) => {
     const organization = await tx.organization.create({
       data,

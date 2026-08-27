@@ -12,7 +12,7 @@ import { generateAccessToken } from "../../../src/utils/jwt";
 
 import { cleanDatabase } from "../../setup";
 
-describe("POST /api/v1/org/create", () => {
+describe("POST /api/v1/organizations/", () => {
   const organizationInput = {
     name: "HirePro Technologies",
     slug: "hirepro-technologies",
@@ -58,7 +58,7 @@ describe("POST /api/v1/org/create", () => {
     const user = await createVerifiedUser();
 
     const response = await request(app)
-      .post("/api/v1/org/create")
+      .post("/api/v1/organizations/")
       .set("Cookie", getAuthCookie(user.id))
       .send(organizationInput);
 
@@ -101,7 +101,7 @@ describe("POST /api/v1/org/create", () => {
   });
 
   it("rejects an unauthenticated request", async () => {
-    const response = await request(app).post("/api/v1/org/create").send(organizationInput);
+    const response = await request(app).post("/api/v1/organizations/").send(organizationInput);
 
     expect(response.status).toBe(401);
 
@@ -122,7 +122,7 @@ describe("POST /api/v1/org/create", () => {
     });
 
     const response = await request(app)
-      .post("/api/v1/org/create")
+      .post("/api/v1/organizations/")
       .set("Cookie", getAuthCookie(user.id))
       .send(organizationInput);
 
@@ -139,7 +139,7 @@ describe("POST /api/v1/org/create", () => {
     const user = await createVerifiedUser();
 
     const response = await request(app)
-      .post("/api/v1/org/create")
+      .post("/api/v1/organizations/")
       .set("Cookie", getAuthCookie(user.id))
       .send({
         name: "",
@@ -176,7 +176,7 @@ describe("POST /api/v1/org/create", () => {
     });
 
     const response = await request(app)
-      .post("/api/v1/org/create")
+      .post("/api/v1/organizations/")
       .set("Cookie", getAuthCookie(secondUser.id))
       .send(organizationInput);
 
@@ -219,7 +219,7 @@ describe("POST /api/v1/org/create", () => {
     });
 
     const response = await request(app)
-      .post("/api/v1/org/create")
+      .post("/api/v1/organizations/")
       .set("Cookie", getAuthCookie(user.id))
       .send(organizationInput);
 
@@ -251,7 +251,7 @@ describe("POST /api/v1/org/create", () => {
     };
 
     const response = await request(app)
-      .post("/api/v1/org/create")
+      .post("/api/v1/organizations/")
       .set("Cookie", getAuthCookie(user.id))
       .send(data);
 

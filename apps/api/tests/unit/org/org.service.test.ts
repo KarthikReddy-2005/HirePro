@@ -3,24 +3,24 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import ApiError from "../../../src/utils/ApiError";
 
 import {
-  createOrganisation,
+  createOrganization,
   findOrganizationBySlug,
   findUserInOrganization,
 } from "../../../src/modules/org/org.repository";
 
-import { createOrganisationService } from "../../../src/modules/org/org.service";
+import { createOrganizationService } from "../../../src/modules/org/org.service";
 
 vi.mock("../../../src/modules/org/org.repository", () => ({
   findOrganizationBySlug: vi.fn(),
   findUserInOrganization: vi.fn(),
-  createOrganisation: vi.fn(),
+  createOrganization: vi.fn(),
 }));
 
 const mockedFindOrganizationBySlug = vi.mocked(findOrganizationBySlug);
 
 const mockedFindUserInOrganization = vi.mocked(findUserInOrganization);
 
-const mockedCreateOrganisation = vi.mocked(createOrganisation);
+const mockedCreateOrganization = vi.mocked(createOrganization);
 
 describe("createOrganisationService", () => {
   const userId = "user-123";
@@ -59,9 +59,9 @@ describe("createOrganisationService", () => {
     mockedFindOrganizationBySlug.mockResolvedValue(null);
     mockedFindUserInOrganization.mockResolvedValue(null);
 
-    mockedCreateOrganisation.mockResolvedValue(createdResult);
+    mockedCreateOrganization.mockResolvedValue(createdResult);
 
-    const result = await createOrganisationService(input, userId);
+    const result = await createOrganizationService(input, userId);
 
     expect(mockedFindOrganizationBySlug).toHaveBeenCalledOnce();
 
@@ -69,7 +69,7 @@ describe("createOrganisationService", () => {
 
     expect(mockedFindUserInOrganization).toHaveBeenCalledWith(userId);
 
-    expect(mockedCreateOrganisation).toHaveBeenCalledWith(input, userId);
+    expect(mockedCreateOrganization).toHaveBeenCalledWith(input, userId);
 
     expect(result).toEqual(createdResult);
   });
@@ -86,14 +86,14 @@ describe("createOrganisationService", () => {
       updatedAt: new Date(),
     });
 
-    await expect(createOrganisationService(input, userId)).rejects.toMatchObject({
+    await expect(createOrganizationService(input, userId)).rejects.toMatchObject({
       statusCode: 409,
       message: "Organization slug already exists",
     });
 
     expect(mockedFindUserInOrganization).not.toHaveBeenCalled();
 
-    expect(mockedCreateOrganisation).not.toHaveBeenCalled();
+    expect(mockedCreateOrganization).not.toHaveBeenCalled();
   });
 
   it("throws 409 when the user already belongs to an organization", async () => {
@@ -107,20 +107,20 @@ describe("createOrganisationService", () => {
       joinedAt: new Date(),
     });
 
-    await expect(createOrganisationService(input, userId)).rejects.toMatchObject({
+    await expect(createOrganizationService(input, userId)).rejects.toMatchObject({
       statusCode: 409,
       message: "User already belongs to an organization",
     });
 
-    expect(mockedCreateOrganisation).not.toHaveBeenCalled();
+    expect(mockedCreateOrganization).not.toHaveBeenCalled();
   });
 
   it("propagates repository errors", async () => {
     mockedFindOrganizationBySlug.mockRejectedValue(new Error("Database unavailable"));
 
-    await expect(createOrganisationService(input, userId)).rejects.toThrow("Database unavailable");
+    await expect(createOrganizationService(input, userId)).rejects.toThrow("Database unavailable");
 
-    expect(mockedCreateOrganisation).not.toHaveBeenCalled();
+    expect(mockedCreateOrganization).not.toHaveBeenCalled();
   });
 
   it("returns an ApiError for duplicate slug", async () => {
@@ -136,7 +136,7 @@ describe("createOrganisationService", () => {
     });
 
     try {
-      await createOrganisationService(input, userId);
+      await createOrganizationService(input, userId);
 
       throw new Error("Expected service to reject");
     } catch (error) {

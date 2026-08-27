@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma } from "../../../src/config/prisma";
 
 import {
-  createOrganisation,
+  createOrganization,
   findOrganizationBySlug,
   findUserInOrganization,
 } from "../../../src/modules/org/org.repository";
@@ -133,7 +133,7 @@ describe("organization repository", () => {
         return callback(tx as never);
       });
 
-      const result = await createOrganisation(input, userId);
+      const result = await createOrganization(input, userId);
 
       expect(mockedPrisma.$transaction).toHaveBeenCalledOnce();
 
@@ -175,7 +175,7 @@ describe("organization repository", () => {
         return callback(tx as never);
       });
 
-      await expect(createOrganisation(input, "user-123")).rejects.toThrow(
+      await expect(createOrganization(input, "user-123")).rejects.toThrow(
         "Organization creation failed",
       );
 
@@ -213,7 +213,7 @@ describe("organization repository", () => {
         return callback(tx as never);
       });
 
-      await expect(createOrganisation(input, "user-123")).rejects.toThrow(
+      await expect(createOrganization(input, "user-123")).rejects.toThrow(
         "Membership creation failed",
       );
 

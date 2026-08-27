@@ -52,7 +52,7 @@ app.use(cookieParser());
 
 app.use("/api/v1", systemRouter);
 app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/org", orgRouter);
+app.use("/api/v1/organizations", orgRouter);
 
 app.use((req, res, next) => {
   next(new ApiError(404, "Route not found"));
