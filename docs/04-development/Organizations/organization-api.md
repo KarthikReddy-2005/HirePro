@@ -1,47 +1,53 @@
-Organization API
+# Organization API
 
-Overview
+## Overview
 
 The Organization API allows an authenticated and email-verified user to:
 
-Create an organization.
-
-Fetch the organization associated with their account.
+1. Create an organization.
+2. Fetch the organization associated with their account.
 
 Base URL:
 
+```http
 /api/v1/organizations
+```
 
-Authentication
+## Authentication
 
 Both endpoints are protected.
 
 The API reads the JWT access token from the HTTP-only cookie:
 
+```http
 Cookie: accessToken=<access-token>
+```
 
 The user must:
 
-Have a valid access token.
+- Have a valid access token.
+- Exist in the database.
+- Have a verified email address.
 
-Exist in the database.
+---
 
-Have a verified email address.
-
-1. Create Organization
+# 1. Create Organization
 
 Creates a new organization and assigns the authenticated user as its owner.
 
-Endpoint
+## Endpoint
 
+```http
 POST /api/v1/organizations
+```
 
-Access
+## Access
 
 Protected.
 
-Request Body
+## Request Body
 
+```json
 {
   "name": "HirePro Technologies",
   "slug": "hirepro-technologies",
@@ -49,106 +55,65 @@ Request Body
   "website": "https://hirepro.example.com",
   "logoUrl": "https://hirepro.example.com/logo.png"
 }
+```
 
-Request Fields
+## Request Fields
 
-Field
+| Field | Type | Required | Rules |
+| --- | --- | --- | --- |
+| `name` | string | Yes | Minimum 2 and maximum 100 characters |
+| `slug` | string | Yes | Unique, lowercase and URL-safe |
+| `description` | string | No | Maximum 500 characters |
+| `website` | string | No | Must be a valid URL |
+| `logoUrl` | string | No | Must be a valid URL |
 
-Type
-
-Required
-
-Rules
-
-name
-
-string
-
-Yes
-
-Minimum 2 and maximum 100 characters
-
-slug
-
-string
-
-Yes
-
-Unique, lowercase and URL-safe
-
-description
-
-string
-
-No
-
-Maximum 500 characters
-
-website
-
-string
-
-No
-
-Must be a valid URL
-
-logoUrl
-
-string
-
-No
-
-Must be a valid URL
-
-Slug Rules
+## Slug Rules
 
 The slug:
 
-Is trimmed.
-
-Is converted to lowercase.
-
-Must contain between 2 and 60 characters.
-
-May contain lowercase letters, numbers and hyphens.
-
-Must be globally unique.
+- Is trimmed.
+- Is converted to lowercase.
+- Must contain between 2 and 60 characters.
+- May contain lowercase letters, numbers and hyphens.
+- Must be globally unique.
 
 Valid examples:
 
+```text
 hirepro
 hirepro-technologies
 company-123
+```
 
 Invalid examples:
 
+```text
 HirePro
 hire pro
 hire_pro
 hirepro!
+```
 
-Business Rules
+## Business Rules
 
-A user can belong to only one organization during Phase 1.
+- A user can belong to only one organization during Phase 1.
+- A user who already belongs to an organization cannot create another one.
+- The organization slug must be unique.
+- The authenticated user becomes the organization owner.
+- Organization creation and owner-membership creation happen inside one database transaction.
+- If membership creation fails, organization creation is rolled back.
 
-A user who already belongs to an organization cannot create another one.
+## Success Response
 
-The organization slug must be unique.
+### Status
 
-The authenticated user becomes the organization owner.
-
-Organization creation and owner-membership creation happen inside one database transaction.
-
-If membership creation fails, organization creation is rolled back.
-
-Success Response
-
-Status
-
+```http
 201 Created
+```
 
-Response Body
+### Response Body
 
+```json
 {
   "success": true,
   "statusCode": 201,
@@ -173,13 +138,17 @@ Response Body
     }
   }
 }
+```
 
-Error Responses
+## Error Responses
 
-Validation Failed
+### Validation Failed
 
+```http
 400 Bad Request
+```
 
+```json
 {
   "success": false,
   "statusCode": 400,
@@ -188,42 +157,56 @@ Validation Failed
     "slug": "Slug can only contain lowercase letters, numbers, and hyphens"
   }
 }
+```
 
-Missing or Invalid Access Token
+### Missing or Invalid Access Token
 
+```http
 401 Unauthorized
+```
 
+```json
 {
   "success": false,
   "statusCode": 401,
   "message": "Unauthorized! Access denied",
   "data": null
 }
+```
 
-Organization Slug Already Exists
+### Organization Slug Already Exists
 
+```http
 409 Conflict
+```
 
+```json
 {
   "success": false,
   "statusCode": 409,
   "message": "Organization slug already exists",
   "data": null
 }
+```
 
-User Already Belongs to an Organization
+### User Already Belongs to an Organization
 
+```http
 409 Conflict
+```
 
+```json
 {
   "success": false,
   "statusCode": 409,
   "message": "User already belongs to an organization",
   "data": null
 }
+```
 
-Example Request
+## Example Request
 
+```bash
 curl --request POST \
   --url http://localhost:5000/api/v1/organizations \
   --header "Content-Type: application/json" \
@@ -235,41 +218,46 @@ curl --request POST \
     "website": "https://hirepro.example.com",
     "logoUrl": "https://hirepro.example.com/logo.png"
   }'
+```
 
-2. Get My Organization
+---
+
+# 2. Get My Organization
 
 Returns the organization associated with the authenticated user.
 
-Endpoint
+## Endpoint
 
+```http
 GET /api/v1/organizations/me
+```
 
-Access
+## Access
 
 Protected.
 
-Request Body
+## Request Body
 
 No request body is required.
 
-Business Rules
+## Business Rules
 
-The authenticated user must belong to an organization.
+- The authenticated user must belong to an organization.
+- The endpoint returns only the authenticated user's organization.
+- Authentication data such as the password hash is not returned.
+- The response includes the user's organization membership role and joining date.
 
-The endpoint returns only the authenticated user's organization.
+## Success Response
 
-Authentication data such as the password hash is not returned.
+### Status
 
-The response includes the user's organization membership role and joining date.
-
-Success Response
-
-Status
-
+```http
 200 OK
+```
 
-Response Body
+### Response Body
 
+```json
 {
   "success": true,
   "statusCode": 200,
@@ -289,67 +277,65 @@ Response Body
     }
   }
 }
+```
 
-Error Responses
+## Error Responses
 
-Missing or Invalid Access Token
+### Missing or Invalid Access Token
 
+```http
 401 Unauthorized
+```
 
+```json
 {
   "success": false,
   "statusCode": 401,
   "message": "Unauthorized! Access denied",
   "data": null
 }
+```
 
-User Does Not Belong to an Organization
+### User Does Not Belong to an Organization
 
+```http
 404 Not Found
+```
 
+```json
 {
   "success": false,
   "statusCode": 404,
   "message": "User does not belong to an organization",
   "data": null
 }
+```
 
-Example Request
+## Example Request
 
+```bash
 curl --request GET \
   --url http://localhost:5000/api/v1/organizations/me \
   --cookie "accessToken=<access-token>"
+```
 
-Organization Role
+---
+
+# Organization Role
 
 Phase 1 currently supports one organization role:
 
+```text
 OWNER
+```
 
-The user who creates the organization automatically receives the OWNER role.
+The user who creates the organization automatically receives the `OWNER` role.
 
-Endpoint Summary
+---
 
-Method
+# Endpoint Summary
 
-Endpoint
-
-Description
-
-Protected
-
-POST
-
-/api/v1/organizations
-
-Create an organization
-
-Yes
-
-GET
-
-/api/v1/organizations/me
-
-Get the current user's organization
-
-Yes
+| Method | Endpoint | Description | Protected |
+| --- | --- | --- | --- |
+| POST | `/api/v1/organizations` | Create an organization | Yes |
+| GET | `/api/v1/organizations/me` | Get the current user's organization | Yes |
