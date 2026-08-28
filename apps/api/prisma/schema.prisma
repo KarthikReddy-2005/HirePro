@@ -8,62 +8,94 @@ datasource db {
 }
 
 model User {
-  id              String   @id @default(cuid())
-  username        String   @unique
+  id              String  @id @default(cuid())
+  username        String  @unique
   displayName     String
-  email           String   @unique
+  email           String  @unique
   hashedPassword  String
   avatarUrl       String?
-  isEmailVerified Boolean  @default(false)
+  isEmailVerified Boolean @default(false)
 
+  emailVerifications  EmailVerification[]
+  passwordResets      PasswordReset[]
+  refreshTokens       RefreshToken[]
+  organizationMembers OrganizationMember[]
 
-  emailVerifications EmailVerification[]
-  passwordResets     PasswordReset[]
-  refreshTokens      RefreshToken[]
-
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model EmailVerification {
-  id              String   @id @default(cuid())
-  userId          String
-  tokenHash       String   @unique
-  expiresAt       DateTime
-  usedAt          DateTime?
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
 
-  user User @relation(fields:[userId],references: [id],onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId])
 }
 
 model PasswordReset {
-  id              String   @id @default(cuid())
-  userId          String
-  tokenHash       String   @unique
-  expiresAt       DateTime
-  usedAt          DateTime?
-
-  user User @relation(fields:[userId],references: [id],onDelete: Cascade)
-
-  createdAt       DateTime @default(now())
-
-  @@index([userId])              
-}
-
-model RefreshToken {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  tokenHash String   @unique
+  tokenHash String    @unique
   expiresAt DateTime
-  revokedAt DateTime?
+  usedAt    DateTime?
 
-  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Organization {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String?
+  logoUrl     String?
+  website     String?
+
+  organizationMembers OrganizationMember[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrganizationMember {
+  id               String           @id @default(cuid())
+  userId           String
+  organizationId   String
+  organizationRole OrganizationRole
+  joinedAt         DateTime         @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@index([organizationId])
+}
+
+enum OrganizationRole {
+  OWNER
 }
